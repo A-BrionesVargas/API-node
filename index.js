@@ -1,35 +1,37 @@
-const express = require('express');
+const express = require("express");
+const displayRoutes = require("express-routemap");
+const cors = require("cors");
+
+const userRoutes = require("./routes/user.routes");
+const petsRoutes = require("./routes/pets.routes");
+
+const PORT = process.env.PORT || 8080;
+
 const app = express();
-const port = process.env.PORT || 3000;
 
-// Middleware para manejar JSON
-app.use(express.json());
+const BASE_PREFIX = process.env.BASE_PREFIX || "api";
 
-// Ruta principal
-app.get('/', (req, res) => {
-  res.send('¡Bienvenido a mi API!');
+app.use(express.json()); // sin esto no podemos ver el req.body
+app.use(express.urlencoded({ extended: true })); // sino se agrega no podremos tomar los parametros de la url del request, req.query
+app.use(cors());
+
+app.use("/static", express.static(`${__dirname}/public`));
+
+app.get("/", (req, res) => {
+  return res.json({ "message":"API DEPLOY SUCCESS" });
 });
 
-// Ejemplo de ruta para obtener datos
-app.get('/api/usuarios', (req, res) => {
-  const usuarios = [
-    { id: 1, nombre: 'Daniel' },
-    { id: 2, nombre: 'María' },
-  ];
-  res.json(usuarios);
-});
-
-// Ejemplo de ruta para crear datos
-app.post('/api/usuarios', (req, res) => {
-  const nuevoUsuario = req.body; // Obtén los datos enviados en el cuerpo de la solicitud
-  nuevoUsuario.id = Date.now(); // Simula un ID único
-  res.status(201).json({
-    mensaje: 'Usuario creado exitosamente',
-    usuario: nuevoUsuario,
+app.get(`/${BASE_PREFIX}/alive`, (req, res) => {
+  return res.json({
+    "message" : `Hola hiciste tu 1ra api, y esta ejecutandose en RAILWAY.APP- ${process.env.NODE_ENV}`,
   });
 });
 
-// Iniciar el servidor
-app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
+// /api/users --> userRoutes
+app.use(/${BASE_PREFIX}/users, userRoutes);
+app.use(/${BASE_PREFIX}/pets, petsRoutes);
+
+app.listen(PORT, () => {
+  displayRoutes(app);
+  console.log(`API RUNNING ON PORT ${PORT}`);
 });
