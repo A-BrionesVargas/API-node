@@ -1,37 +1,27 @@
-const express = require("express");
-const displayRoutes = require("express-routemap");
-const cors = require("cors");
+import app from "./app.js";
+import { PORT } from "./config.js";
+import db from "./db.js";
 
-// const userRoutes = require("./routes/user.routes");
-// const petsRoutes = require("./routes/pets.routes");
+async function main() {
+  try {
+    dbConecction();
+    app.listen(PORT);
+    console.log(`Listening on port http://localhost:${PORT}`);
+    // console.log(`Environment: ${process.env.NODE_ENV}`)
+  } catch (error) {
+    console.error(error);
 
-const PORT = process.env.PORT || 8080;
+  } 
+}
 
-const app = express();
+async function dbConecction() {
+  try {
+    await db.authenticate();
+    console.log("Database online");
 
-const BASE_PREFIX = process.env.BASE_PREFIX || "api";
+  } catch (error) {
+    throw new Error ( error );
+  }
+}
 
-app.use(express.json()); // sin esto no podemos ver el req.body
-app.use(express.urlencoded({ extended: true })); // sino se agrega no podremos tomar los parametros de la url del request, req.query
-app.use(cors());
-
-app.use("/static", express.static(`${__dirname}/public`));
-
-app.get("/", (req, res) => {
-  return res.json({ "message":"API DEPLOY SUCCESS" });
-});
-
-app.get(`/${BASE_PREFIX}/alive`, (req, res) => {
-  return res.json({
-    "message" : `Hola hiciste tu 1ra api, y esta ejecutandose en RAILWAY.APP- ${process.env.NODE_ENV}`,
-  });
-});
-
-// /api/users --> userRoutes
-// app.use(`/${BASE_PREFIX}/users`, userRoutes);
-// app.use(`/${BASE_PREFIX}/pets`, petsRoutes);
-
-app.listen(PORT, () => {
-  displayRoutes(app);
-  console.log(`API RUNNING ON PORT ${PORT}`);
-});
+main();
